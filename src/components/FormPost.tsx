@@ -9,12 +9,25 @@ import { SubmitHandler, useForm } from "react-hook-form";
 interface FormPostProps {
   submit: SubmitHandler<formInputPost>;
   isEditing: boolean;
+  initialValueToEdit?: formInputPost;
+  isLoadingSubmit: boolean;
 }
-const FormPost: FC<FormPostProps> = ({ submit, isEditing }) => {
-  const { register, handleSubmit } = useForm<formInputPost>();
-  const Submit = (data) => console.log(data);
+const FormPost: FC<FormPostProps> = ({
+  submit,
+  isEditing,
+  initialValueToEdit,
+  isLoadingSubmit,
+}) => {
+  const { register, handleSubmit } = useForm<formInputPost>({
+    defaultValues: initialValueToEdit,
+  });
 
-  //! fetch list tags and first test of better comments
+  const Submit = (data) => {
+    console.log("🚀 ~ file: FormPost.tsx:20 ~ Submit ~ data:", data);
+    submit(data);
+  };
+
+  //? fetch list tags and first test of better comments
   const {
     isPending: isLoadingTags,
     data: dataTags,
@@ -23,10 +36,10 @@ const FormPost: FC<FormPostProps> = ({ submit, isEditing }) => {
     queryKey: ["tags"],
     queryFn: async () => {
       const respons = await axios.get("/api/tags");
-      console.log(
-        "🚀 ~ file: FormPost.tsx:21 ~ queryFn:async ~ respons:",
-        respons
-      );
+      // console.log(
+      //   "🚀 ~ file: FormPost.tsx:21 ~ queryFn:async ~ respons:",
+      //   respons
+      // );
       return respons.data;
     },
   });
@@ -52,11 +65,10 @@ const FormPost: FC<FormPostProps> = ({ submit, isEditing }) => {
       {isLoadingTags ? (
         // "Loading ..."
         <span className="loading loading-dots loading-md"></span>
-
       ) : (
         <select
           defaultValue={""}
-          {...register("tag", { required: true })}
+          {...register("tagId", { required: true })}
           className="select select-bordered w-full max-w-lg"
         >
           <option disabled selected>
@@ -75,7 +87,16 @@ const FormPost: FC<FormPostProps> = ({ submit, isEditing }) => {
       )}
       {/*when we change the type of the button to submit the validation start working  */}
       <button type="submit" className="btn btn-primary w-full max-w-lg">
-        {isEditing ? "Update" : "Create"}
+        {isLoadingSubmit && (
+          <span className="loading loading-infinity loading-md"></span>
+        )}
+        {isEditing
+          ? isLoadingSubmit
+            ? "Updating ..."
+            : "Update"
+          : isLoadingSubmit
+          ? "Creating ..."
+          : "Create"}
       </button>
     </form>
   );

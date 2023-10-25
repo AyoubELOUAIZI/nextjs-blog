@@ -1,15 +1,47 @@
-import { PencilLine,Trash2 } from 'lucide-react'
-import Link from 'next/link'
-import React from 'react'
+"use client";
+import { useMutation } from "@tanstack/react-query";
+import axios from "axios";
+import { PencilLine, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import React, { FC } from "react";
 
-const ButtonAction = () => {
+interface ButtonActionProps {
+  id: string;
+}
+const ButtonAction: FC<ButtonActionProps> = ({ id }) => {
+  const router = useRouter();
+  const { mutate: deletePost, isPending } = useMutation({
+    mutationFn: (async) => {
+      return axios.delete(`/api/posts/${id}`);
+    },
+    onError: (error) => {
+      console.log(error);
+      console.error(error);
+    },
+    onSuccess: () => {
+      router.push("/");
+      router.refresh();
+    },
+  });
   return (
     <div>
-       <Link className='btn mr-2'href='/edit/1'> <PencilLine /> Edit</Link>
-       <button className='btn btn-error'> <Trash2 /> Delete</button>
+      <Link className="btn mr-2" href={`/edit/${id}`}>
+        {" "}
+        <PencilLine /> Edit
+      </Link>
+      <button onClick={() => deletePost()} className="btn btn-error">
+        {isPending && <span className="loading loading-bars loading-xs"></span>}
+        {isPending ? (
+          "Deleting..."
+        ) : (
+          <>
+            <Trash2 /> Delete
+          </>
+        )}
+      </button>
     </div>
-  )
-}
+  );
+};
 
-export default ButtonAction
-
+export default ButtonAction;
